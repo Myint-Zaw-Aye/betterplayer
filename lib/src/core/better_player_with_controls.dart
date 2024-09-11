@@ -72,32 +72,36 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
     final BetterPlayerController betterPlayerController =
         BetterPlayerController.of(context);
 
-    double? aspectRatio;
-    if (betterPlayerController.isFullScreen) {
-      if (betterPlayerController.betterPlayerConfiguration
-              .autoDetectFullscreenDeviceOrientation ||
-          betterPlayerController
-              .betterPlayerConfiguration.autoDetectFullscreenAspectRatio) {
-        aspectRatio =
-            betterPlayerController.videoPlayerController?.value.aspectRatio ??
-                1.0;
-      } else {
-        aspectRatio = betterPlayerController
-                .betterPlayerConfiguration.fullScreenAspectRatio ??
-            BetterPlayerUtils.calculateAspectRatio(context);
-      }
-    } else {
-      aspectRatio = betterPlayerController.getAspectRatio();
-    }
+    // double? aspectRatio;
+    // if (betterPlayerController.isFullScreen) {
+    //   if (betterPlayerController.betterPlayerConfiguration
+    //           .autoDetectFullscreenDeviceOrientation ||
+    //       betterPlayerController
+    //           .betterPlayerConfiguration.autoDetectFullscreenAspectRatio) {
+    //     aspectRatio =
+    //         betterPlayerController.videoPlayerController?.value.aspectRatio ??
+    //             1.0;
+    //   } else {
+    //     aspectRatio = betterPlayerController
+    //             .betterPlayerConfiguration.fullScreenAspectRatio ??
+    //         BetterPlayerUtils.calculateAspectRatio(context);
+    //   }
+    // } else {
+    //   aspectRatio = betterPlayerController.getAspectRatio();
+    // }
 
-    aspectRatio ??= 16 / 9;
-    final innerContainer = Container(
-      width: double.infinity,
-      color: betterPlayerController
-          .betterPlayerConfiguration.controlsConfiguration.backgroundColor,
-      child: AspectRatio(
-        aspectRatio: aspectRatio,
-        child: _buildPlayerWithControls(betterPlayerController, context),
+    // aspectRatio ??= 16 / 9;
+    final innerContainer = SafeArea(
+      bottom: false,
+      child: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        color: betterPlayerController
+            .betterPlayerConfiguration.controlsConfiguration.backgroundColor,
+        child: AspectRatio(
+          aspectRatio: calculateAspectRatio(context),
+          child: _buildPlayerWithControls(betterPlayerController, context),
+        ),
       ),
     );
 
@@ -107,6 +111,14 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
       return innerContainer;
     }
   }
+
+  double calculateAspectRatio(BuildContext context) {
+      final size = MediaQuery.of(context).size;
+      final width = size.width;
+      final height = size.height;
+
+      return width > height ? width / height : height / width;
+    }
 
   Container _buildPlayerWithControls(
       BetterPlayerController betterPlayerController, BuildContext context) {

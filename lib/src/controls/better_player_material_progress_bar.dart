@@ -123,7 +123,7 @@ class _VideoProgressBarState
       child: Center(
         child: Container(
           height: MediaQuery.of(context).size.height / 2,
-          width: MediaQuery.of(context).size.width,
+          width: MediaQuery.of(context).size.width - 140,
           color: Colors.transparent,
           child: CustomPaint(
             painter: _ProgressBarPainter(

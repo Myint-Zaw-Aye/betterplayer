@@ -5,6 +5,11 @@ import 'package:flutter/material.dart';
 ///UI configuration of Better Player. Allows to change colors/icons/behavior
 ///of controls. Used in BetterPlayerConfiguration. Configuration applies only
 ///for player displayed in app, not in notification or PiP mode.
+typedef playPreviousVideoCallBack = void Function();
+typedef playNextVideoCallBack = void Function();
+typedef setLoopingCallBack = void Function(bool isLoop);
+typedef setRepeatCallBack = void Function(bool isRepeat);
+
 class BetterPlayerControlsConfiguration {
   ///Color of the control bars
   final Color controlBarColor;
@@ -20,6 +25,18 @@ class BetterPlayerControlsConfiguration {
 
   ///Icon of pause
   final IconData pauseIcon;
+
+    ///Icon of previous
+  final IconData previousIcon;
+
+  ///Icon of next
+  final IconData nextIcon;
+
+  final playPreviousVideoCallBack? playPreviousVideo;
+  
+  final playNextVideoCallBack? playNextVideo;
+
+
 
   ///Icon of mute
   final IconData muteIcon;
@@ -167,6 +184,10 @@ class BetterPlayerControlsConfiguration {
     this.iconsColor = Colors.white,
     this.playIcon = Icons.play_arrow_outlined,
     this.pauseIcon = Icons.pause_outlined,
+    this.previousIcon = Icons.skip_previous_outlined,
+    this.nextIcon = Icons.skip_next_outlined,
+    this.playPreviousVideo,
+    this.playNextVideo,
     this.muteIcon = Icons.volume_up_outlined,
     this.unMuteIcon = Icons.volume_off_outlined,
     this.fullscreenEnableIcon = Icons.fullscreen_outlined,

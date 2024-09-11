@@ -28,6 +28,7 @@ class _NormalPlayerPageState extends State<NormalPlayerPage> {
     _betterPlayerDataSource = BetterPlayerDataSource(
       BetterPlayerDataSourceType.network,
       Constants.forBiggerBlazesUrl,
+      title: 'hello'
     );
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
     _betterPlayerController.setupDataSource(_betterPlayerDataSource);
@@ -37,18 +38,8 @@ class _NormalPlayerPageState extends State<NormalPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Normal player page"),
-      ),
-      body: Column(
-        children: [
-          const SizedBox(height: 8),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: BetterPlayer(controller: _betterPlayerController),
-          ),
-        ],
-      ),
+      backgroundColor: Colors.black,
+      body: BetterPlayer(controller: _betterPlayerController),
     );
   }
 }
