@@ -11,6 +11,10 @@ import 'package:better_player/src/video_player/video_player.dart';
 
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'better_player_vertical_slider.dart';
 
 class BetterPlayerMaterialControls extends StatefulWidget {
   ///Callback used to send information if player bar is hidden or not
@@ -50,6 +54,8 @@ class _BetterPlayerMaterialControlsState
       isLoop = false,
       isVisableVoice = false,
       isVisableBrightness = false;
+  final BehaviorSubject<double> volume = BehaviorSubject.seeded(0);
+  final BehaviorSubject<double> brightness = BehaviorSubject.seeded(0);
 
   BetterPlayerControlsConfiguration get _controlsConfiguration =>
       widget.controlsConfiguration;
@@ -83,6 +89,20 @@ class _BetterPlayerMaterialControlsState
         IgnorePointer(
           ignoring: isIgnoreControl,
           child: GestureDetector(
+            onVerticalDragStart: (dragStartDetails) {
+                dragScreenStart(dragStartDetails);
+              },
+              onVerticalDragUpdate: (dragUpdateDetails) {
+                dragScreen(dragUpdateDetails);
+              },
+              onVerticalDragEnd: (dragEndDetails) {
+                isVisableVoice = false;
+                isVisableBrightness = false;
+                setState(() {});
+              },
+              onDoubleTap: () {
+                _onPlayPause();
+              },
             onTap: () {
               if (BetterPlayerMultipleGestureDetector.of(context) != null) {
                 BetterPlayerMultipleGestureDetector.of(context)!.onTap?.call();
@@ -91,36 +111,48 @@ class _BetterPlayerMaterialControlsState
                   ? cancelAndRestartTimer()
                   : changePlayerControlsNotVisible(true);
             },
-            onDoubleTap: () {
-              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-                BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
-              }
-              cancelAndRestartTimer();
-            },
+            // onDoubleTap: () {
+            //   if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+            //     BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
+            //   }
+            //   cancelAndRestartTimer();
+            // },
             onLongPress: () {
               if (BetterPlayerMultipleGestureDetector.of(context) != null) {
                 BetterPlayerMultipleGestureDetector.of(context)!.onLongPress?.call();
               }
             },
-            child: AbsorbPointer(
-              absorbing: controlsNotVisible,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (_wasLoading)
-                    Center(child: _buildLoadingWidget())
-                  else
-                    _buildHitArea(),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildTopBar(),
+            child: Stack(
+              children: [
+                AbsorbPointer(
+                  absorbing: controlsNotVisible,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (_wasLoading)
+                        Center(child: _buildLoadingWidget())
+                      else
+                        _buildHitArea(),
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildTopBar(),
+                      ),
+                      Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
+                      _buildNextVideoWidget(),
+                    ],
                   ),
-                  Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
-                  _buildNextVideoWidget(),
-                ],
-              ),
+                ),
+                Align(
+                    alignment: Alignment.centerLeft,
+                    child: volumeUpWidget(),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: brightnessUpWidget(),
+                  )
+              ],
             ),
           ),
         ),
@@ -159,9 +191,19 @@ class _BetterPlayerMaterialControlsState
     if (_oldController != _betterPlayerController) {
       _dispose();
       _initialize();
+      getOriginalVolumeAndBrightness();
     }
 
     super.didChangeDependencies();
+  }
+
+  getOriginalVolumeAndBrightness() async {
+    double? originalVolume = await FlutterVolumeController.getVolume();
+    double originalBrightness = await ScreenBrightness().current;
+    if (originalVolume != null) {
+      volume.value = originalVolume;
+    }
+    brightness.value = originalBrightness;
   }
 
   Widget _buildErrorWidget() {
@@ -766,6 +808,137 @@ class _BetterPlayerMaterialControlsState
   //     ),
   //   );
   // }
+
+  Widget volumeUpWidget() {
+    return StreamBuilder<double>(
+        stream: volume,
+        builder: (context, snapshot) {
+          if (snapshot.data == null) {
+            return Container();
+          }
+          return Visibility(
+              visible: isVisableVoice,
+              child: Container(
+                margin: EdgeInsets.only(left: 10),
+                width: 30,
+                height: 200,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.black.withOpacity(0.4)),
+                child: IgnorePointer(
+                    child: Column(
+                  children: [
+                    Text(
+                      volumeToRange15(snapshot.data!).toString(),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    VerticalSlider(
+                        min: 0,
+                        max: 15,
+                        value: volumeToRange15(snapshot.data!).toDouble(),
+                        onChanged: (value) {}),
+                    snapshot.data == 0
+                        ? Icon(
+                            Icons.volume_off_rounded,
+                            color: Colors.white,
+                          )
+                        : Icon(
+                            Icons.volume_up,
+                            color: Colors.white,
+                          )
+                  ],
+                )),
+              ));
+        });
+  }
+
+  Widget brightnessUpWidget() {
+    return StreamBuilder<double>(
+        stream: brightness,
+        builder: (context, snapshot) {
+          if (snapshot.data == null) {
+            return Container();
+          }
+          return Visibility(
+              visible: isVisableBrightness,
+              child: Container(
+                margin: EdgeInsets.only(right: 10),
+                width: 30,
+                height: 200,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.black.withOpacity(0.4)),
+                child: IgnorePointer(
+                    child: Column(
+                  children: [
+                    Text(
+                      volumeToRange15(snapshot.data!).toString(),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    VerticalSlider(
+                        min: 0,
+                        max: 15,
+                        value: volumeToRange15(snapshot.data!).toDouble(),
+                        onChanged: (value) {}),
+                    Icon(
+                      Icons.brightness_4_rounded,
+                      color: Colors.white,
+                    )
+                  ],
+                )),
+              ));
+        });
+  }
+
+  int volumeToRange15(double volume) {
+    return (volume * 15).round();
+  }
+
+  Future<void> dragScreenStart(DragStartDetails dragUpdateDetails) async {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double third = screenWidth / 3;
+    double xPos = dragUpdateDetails.localPosition.dx;
+    if (xPos < third) {
+      //left
+      isVisableBrightness = true;
+    } else if (xPos > 2 * third) {
+      isVisableVoice = true;
+    }
+    setState(() {});
+  }
+
+  Future<void> dragScreen(DragUpdateDetails dragUpdateDetails) async {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double third = screenWidth / 3;
+    double xPos = dragUpdateDetails.localPosition.dx;
+
+    double yDelta = dragUpdateDetails.delta.dy;
+    if (xPos < third) {
+      //left
+      if (brightness.value < 1 && yDelta < 0) {
+        brightness
+            .add(double.parse((brightness.value + 0.005).toStringAsFixed(3)));
+      }
+
+      if (brightness.value > 0 && yDelta > 0) {
+        brightness
+            .add(double.parse((brightness.value - 0.005).toStringAsFixed(3)));
+      }
+      await ScreenBrightness().setScreenBrightness(brightness.value);
+    } else if (xPos > 2 * third) {
+      //right
+      if (volume.value < 1 && yDelta < 0) {
+        volume.add(double.parse((volume.value + 0.005).toStringAsFixed(3)));
+      }
+
+      if (volume.value > 0 && yDelta > 0) {
+        volume.add(double.parse((volume.value - 0.005).toStringAsFixed(3)));
+      }
+      FlutterVolumeController.showSystemUI = false;
+      await FlutterVolumeController.setVolume(volume.value);
+    }
+    setState(() {});
+  }
 
   @override
   void cancelAndRestartTimer() {
