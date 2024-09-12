@@ -36,6 +36,10 @@ class BetterPlayerControlsConfiguration {
   
   final playNextVideoCallBack? playNextVideo;
 
+  final setLoopingCallBack? setLoopingNew;
+
+  final setRepeatCallBack? setRepeat;
+
 
 
   ///Icon of mute
@@ -188,6 +192,8 @@ class BetterPlayerControlsConfiguration {
     this.nextIcon = Icons.skip_next_outlined,
     this.playPreviousVideo,
     this.playNextVideo,
+    this.setLoopingNew,
+    this.setRepeat,
     this.muteIcon = Icons.volume_up_outlined,
     this.unMuteIcon = Icons.volume_off_outlined,
     this.fullscreenEnableIcon = Icons.fullscreen_outlined,

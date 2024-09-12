@@ -44,7 +44,12 @@ class _BetterPlayerMaterialControlsState
   BetterPlayerController? _betterPlayerController;
   StreamSubscription? _controlsVisibilityStreamSubscription;
 
-  bool isIgnoreControl = false;
+  bool isIgnoreControl = false,
+
+      isRepeat = false,
+      isLoop = false,
+      isVisableVoice = false,
+      isVisableBrightness = false;
 
   BetterPlayerControlsConfiguration get _controlsConfiguration =>
       widget.controlsConfiguration;
@@ -250,6 +255,24 @@ class _BetterPlayerMaterialControlsState
                         _buildExpandButton()
                         else
                         const SizedBox(),
+                        !isLoop
+                        ? _buildLoopButton(Icons.repeat,(){
+                           isLoop = true;
+                           _controlsConfiguration.setLoopingNew!(true);
+                        })
+                        : isRepeat
+                            ? _buildLoopButton(Icons.repeat_one,(){
+                                isRepeat = false;
+                                isLoop = false;
+                                _controlsConfiguration.setRepeat!(false);
+                                _controlsConfiguration.setLoopingNew!(false);                                
+                            })
+                            : _buildLoopButton(Icons.repeat,(){
+                                isRepeat = true;
+                                _controlsConfiguration.setRepeat!(true);
+                            }),
+
+
                         
                           Spacer(),
                         if (_controlsConfiguration.enablePip)
@@ -431,6 +454,29 @@ class _BetterPlayerMaterialControlsState
                 //     ? _controlsConfiguration.fullscreenDisableIcon
                 //     : _controlsConfiguration.fullscreenEnableIcon,
                 Icons.screen_rotation,
+                color: _controlsConfiguration.iconsColor,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoopButton(IconData iconData,VoidCallback onTap) {
+    return Padding(
+      padding: EdgeInsets.only(right: 12.0),
+      child: BetterPlayerMaterialClickableWidget(
+        onTap: onTap,
+        child: AnimatedOpacity(
+          opacity: controlsNotVisible ? 0.0 : 1.0,
+          duration: _controlsConfiguration.controlsHideTime,
+          child: Container(
+            height: _controlsConfiguration.controlBarHeight,
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Center(
+              child: Icon(
+                iconData,
                 color: _controlsConfiguration.iconsColor,
               ),
             ),
