@@ -518,7 +518,7 @@ class _BetterPlayerMaterialControlsState
     //if (!betterPlayerController!.controlsEnabled) {
       return controlDetect(
         child: Container(
-          color: _controlsConfiguration.controlBarColor,
+          color: Colors.transparent,
           width: double.infinity,
           height: double.infinity,
           child: SizedBox(),
