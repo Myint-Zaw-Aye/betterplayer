@@ -11,6 +11,12 @@ typedef setLoopingCallBack = void Function(bool isLoop);
 typedef setRepeatCallBack = void Function(bool isRepeat);
 
 class BetterPlayerControlsConfiguration {
+
+  final bool isLoop;
+
+  final bool isRepeat;
+
+
   ///Color of the control bars
   final Color controlBarColor;
 
@@ -183,6 +189,8 @@ class BetterPlayerControlsConfiguration {
   final Color overflowModalTextColor;
 
   const BetterPlayerControlsConfiguration({
+    this.isLoop = false,
+    this.isRepeat = false,
     this.controlBarColor = Colors.black87,
     this.textColor = Colors.white,
     this.iconsColor = Colors.white,

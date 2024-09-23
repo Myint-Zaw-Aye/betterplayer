@@ -88,40 +88,7 @@ class _BetterPlayerMaterialControlsState
       children: [
         IgnorePointer(
           ignoring: isIgnoreControl,
-          child: GestureDetector(
-            onVerticalDragStart: (dragStartDetails) {
-                dragScreenStart(dragStartDetails);
-              },
-              onVerticalDragUpdate: (dragUpdateDetails) {
-                dragScreen(dragUpdateDetails);
-              },
-              onVerticalDragEnd: (dragEndDetails) {
-                isVisableVoice = false;
-                isVisableBrightness = false;
-                setState(() {});
-              },
-              onDoubleTap: () {
-                _onPlayPause();
-              },
-            onTap: () {
-              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-                BetterPlayerMultipleGestureDetector.of(context)!.onTap?.call();
-              }
-              controlsNotVisible
-                  ? cancelAndRestartTimer()
-                  : changePlayerControlsNotVisible(true);
-            },
-            // onDoubleTap: () {
-            //   if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-            //     BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
-            //   }
-            //   cancelAndRestartTimer();
-            // },
-            onLongPress: () {
-              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-                BetterPlayerMultipleGestureDetector.of(context)!.onLongPress?.call();
-              }
-            },
+          child: controlDetect(
             child: Stack(
               children: [
                 AbsorbPointer(
@@ -165,6 +132,14 @@ class _BetterPlayerMaterialControlsState
             )),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    isLoop = _controlsConfiguration.isLoop;
+    isRepeat = _controlsConfiguration.isRepeat;
   }
 
   @override
@@ -297,20 +272,27 @@ class _BetterPlayerMaterialControlsState
                         _buildExpandButton()
                         else
                         const SizedBox(),
+
+                        if (_betterPlayerController!.isLiveStream())
+                          const SizedBox()
+                        else
                         !isLoop
-                        ? _buildLoopButton(Icons.repeat,(){
+                        ? _buildLoopButton(Icons.repeat,_controlsConfiguration.controlBarColor,(){
                            isLoop = true;
+                           setState(() {});
                            _controlsConfiguration.setLoopingNew!(true);
                         })
                         : isRepeat
-                            ? _buildLoopButton(Icons.repeat_one,(){
+                            ? _buildLoopButton(Icons.repeat_one,Theme.of(context).primaryColor,(){
                                 isRepeat = false;
                                 isLoop = false;
+                                setState(() {});
                                 _controlsConfiguration.setRepeat!(false);
                                 _controlsConfiguration.setLoopingNew!(false);                                
                             })
-                            : _buildLoopButton(Icons.repeat,(){
+                            : _buildLoopButton(Icons.repeat,Theme.of(context).primaryColor,(){
                                 isRepeat = true;
+                                setState(() {});
                                 _controlsConfiguration.setRepeat!(true);
                             }),
 
@@ -505,7 +487,7 @@ class _BetterPlayerMaterialControlsState
     );
   }
 
-  Widget _buildLoopButton(IconData iconData,VoidCallback onTap) {
+  Widget _buildLoopButton(IconData iconData,Color color,VoidCallback onTap) {
     return Padding(
       padding: EdgeInsets.only(right: 12.0),
       child: BetterPlayerMaterialClickableWidget(
@@ -514,6 +496,10 @@ class _BetterPlayerMaterialControlsState
           opacity: controlsNotVisible ? 0.0 : 1.0,
           duration: _controlsConfiguration.controlsHideTime,
           child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30.0),
+              color: color,
+            ),
             height: _controlsConfiguration.controlBarHeight,
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Center(
@@ -530,7 +516,14 @@ class _BetterPlayerMaterialControlsState
 
   Widget _buildHitArea() {
     //if (!betterPlayerController!.controlsEnabled) {
-      return const SizedBox();
+      return controlDetect(
+        child: Container(
+          color: _controlsConfiguration.controlBarColor,
+          width: double.infinity,
+          height: double.infinity,
+          child: SizedBox(),
+        ),
+      );
     //}
     // return Container(
     //   child: Center(
@@ -542,7 +535,45 @@ class _BetterPlayerMaterialControlsState
     //   ),
     // );
   }
-
+  
+  GestureDetector controlDetect({required Widget child}){
+    return GestureDetector(
+      onVerticalDragStart: (dragStartDetails) {
+                dragScreenStart(dragStartDetails);
+              },
+              onVerticalDragUpdate: (dragUpdateDetails) {
+                dragScreen(dragUpdateDetails);
+              },
+              onVerticalDragEnd: (dragEndDetails) {
+                isVisableVoice = false;
+                isVisableBrightness = false;
+                setState(() {});
+              },
+              onDoubleTap: () {
+                _onPlayPause();
+              },
+            onTap: () {
+              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+                BetterPlayerMultipleGestureDetector.of(context)!.onTap?.call();
+              }
+              controlsNotVisible
+                  ? cancelAndRestartTimer()
+                  : changePlayerControlsNotVisible(true);
+            },
+            // onDoubleTap: () {
+            //   if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+            //     BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
+            //   }
+            //   cancelAndRestartTimer();
+            // },
+            onLongPress: () {
+              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+                BetterPlayerMultipleGestureDetector.of(context)!.onLongPress?.call();
+              }
+            },
+            child: child,
+    );
+  }
   Widget _buildMiddleRow() {
     return Container(
       color: _controlsConfiguration.controlBarColor,

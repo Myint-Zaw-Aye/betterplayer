@@ -24,6 +24,10 @@ class _NormalPlayerPageState extends State<NormalPlayerPage> {
         DeviceOrientation.portraitDown,
         DeviceOrientation.portraitUp
       ],
+      controlsConfiguration: BetterPlayerControlsConfiguration(
+        progressBarPlayedColor:Colors.green,
+        progressBarHandleColor:Colors.green
+      )
     );
     _betterPlayerDataSource = BetterPlayerDataSource(
       BetterPlayerDataSourceType.network,
