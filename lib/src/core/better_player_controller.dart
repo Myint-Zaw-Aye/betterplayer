@@ -22,6 +22,12 @@ class BetterPlayerController {
   static const String _dataSourceParameter = "dataSource";
   static const String _authorizationHeader = "Authorization";
 
+  /// Controller to pass into the [InteractiveViewer] component
+  final TransformationController? transformationController;
+
+  /// Max scale when zooming
+  final double maxScale;
+
   ///General configuration used in controller instance.
   final BetterPlayerConfiguration betterPlayerConfiguration;
 
@@ -212,6 +218,8 @@ class BetterPlayerController {
 
   BetterPlayerController(
     this.betterPlayerConfiguration, {
+    this.transformationController,
+    this.maxScale = 2.5,
     this.betterPlayerPlaylistConfiguration,
     BetterPlayerDataSource? betterPlayerDataSource,
   }) {

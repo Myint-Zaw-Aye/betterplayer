@@ -17,16 +17,20 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'better_player_vertical_slider.dart';
 
 class BetterPlayerMaterialControls extends StatefulWidget {
+  final Widget videoWidget;
   ///Callback used to send information if player bar is hidden or not
   final Function(bool visbility) onControlsVisibilityChanged;
 
   ///Controls config
   final BetterPlayerControlsConfiguration controlsConfiguration;
 
+  // final Widget videoWidget;
+
   const BetterPlayerMaterialControls({
     Key? key,
     required this.onControlsVisibilityChanged,
-    required this.controlsConfiguration,
+    required this.controlsConfiguration, required this.videoWidget,
+    // required this.videoWidget,
   }) : super(key: key);
 
   @override
@@ -48,6 +52,9 @@ class _BetterPlayerMaterialControlsState
   BetterPlayerController? _betterPlayerController;
   StreamSubscription? _controlsVisibilityStreamSubscription;
 
+
+  bool isMultiTouch= false;
+  int touchCount = 0;
   bool isIgnoreControl = false,
 
       isRepeat = false,
@@ -59,6 +66,8 @@ class _BetterPlayerMaterialControlsState
 
   BetterPlayerControlsConfiguration get _controlsConfiguration =>
       widget.controlsConfiguration;
+
+  bool isTwoFingerDrag = true;
 
   @override
   VideoPlayerValue? get latestValue => _latestValue;
@@ -88,40 +97,32 @@ class _BetterPlayerMaterialControlsState
       children: [
         IgnorePointer(
           ignoring: isIgnoreControl,
-          child: controlDetect(
-            child: Stack(
+          child: Stack(
+            //  fit: StackFit.expand,
               children: [
-                AbsorbPointer(
-                  absorbing: controlsNotVisible,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (_wasLoading)
-                        Center(child: _buildLoadingWidget())
-                      else
-                        _buildHitArea(),
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: _buildTopBar(),
-                      ),
-                      Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
-                      _buildNextVideoWidget(),
-                    ],
-                  ),
+                if (_wasLoading)
+                  Center(child: _buildLoadingWidget())
+                else
+                  _buildHitArea(widget.videoWidget),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildTopBar(),
+                ),
+                Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
+                _buildNextVideoWidget(),
+                        
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: volumeUpWidget(),
                 ),
                 Align(
-                    alignment: Alignment.centerLeft,
-                    child: volumeUpWidget(),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: brightnessUpWidget(),
-                  )
+                  alignment: Alignment.centerRight,
+                  child: brightnessUpWidget(),
+                )
               ],
             ),
-          ),
         ),
         if (isIgnoreControl)
             IconButton(
@@ -166,6 +167,7 @@ class _BetterPlayerMaterialControlsState
     if (_oldController != _betterPlayerController) {
       _dispose();
       _initialize();
+       print("call again original");
       getOriginalVolumeAndBrightness();
     }
 
@@ -234,7 +236,8 @@ class _BetterPlayerMaterialControlsState
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  SizedBox(
+                  Container(
+                    color:Colors.black.withOpacity(0.09),
                     height: _controlsConfiguration.controlBarHeight,
                     child: Row(
                       children: [
@@ -367,9 +370,15 @@ class _BetterPlayerMaterialControlsState
       },
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Icon(
-          _controlsConfiguration.overflowMenuIcon,
-          color: _controlsConfiguration.iconsColor,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30.0),
+            color: _controlsConfiguration.controlBarColor,
+          ),
+          child: Icon(
+            _controlsConfiguration.overflowMenuIcon,
+            color: _controlsConfiguration.iconsColor,
+          ),
         ),
       ),
     );
@@ -384,8 +393,9 @@ class _BetterPlayerMaterialControlsState
       duration: _controlsConfiguration.controlsHideTime,
       onEnd: _onPlayerHide,
       child: Container(
-        margin: EdgeInsets.all(15),
-        height: _controlsConfiguration.controlBarHeight + 40.0,
+        color: _controlsConfiguration.controlBarColor.withOpacity(0.1),
+        margin: EdgeInsets.symmetric(vertical: 15),
+        height: _controlsConfiguration.controlBarHeight + 20.0,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -449,6 +459,10 @@ class _BetterPlayerMaterialControlsState
           child: Container(
             height: _controlsConfiguration.controlBarHeight,
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25.0),
+              color: _controlsConfiguration.controlBarColor,
+            ),
             child: Center(
               child: Icon(
                 Icons.lock_open,
@@ -472,6 +486,10 @@ class _BetterPlayerMaterialControlsState
           child: Container(
             height: _controlsConfiguration.controlBarHeight,
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30.0),
+              color: _controlsConfiguration.controlBarColor,
+            ),
             child: Center(
               child: Icon(
                 // _betterPlayerController!.isFullScreen
@@ -514,17 +532,34 @@ class _BetterPlayerMaterialControlsState
     );
   }
 
-  Widget _buildHitArea() {
-    //if (!betterPlayerController!.controlsEnabled) {
-      return controlDetect(
-        child: Container(
-          color: Colors.transparent,
-          width: double.infinity,
-          height: double.infinity,
-          child: SizedBox(),
-        ),
-      );
-    //}
+  Widget _buildHitArea(Widget videoWidget) {
+    if (betterPlayerController!.controlsEnabled) {
+     //use videoWidget pass to control video with InteractiveViewer zoom
+      return Listener(
+        onPointerDown: (PointerDownEvent event) {
+          touchCount++;
+
+          if(touchCount >1 ){
+            setState(() {
+            isMultiTouch = true;
+            print("plus" + touchCount.toString());
+          });
+          }
+         
+        },
+        onPointerUp: (PointerUpEvent event) {
+          setState(() {
+            isMultiTouch = false;
+            print('minus' + touchCount.toString());
+             isVisableVoice = false;
+             isVisableBrightness = false;
+             touchCount = 0;
+          });
+        },
+        child: controlDetect(child: videoWidget));
+    }
+    return videoWidget;
+    // return videoWidget;
     // return Container(
     //   child: Center(
     //     child: AnimatedOpacity(
@@ -538,42 +573,44 @@ class _BetterPlayerMaterialControlsState
   
   GestureDetector controlDetect({required Widget child}){
     return GestureDetector(
-      onVerticalDragStart: (dragStartDetails) {
-                dragScreenStart(dragStartDetails);
-              },
-              onVerticalDragUpdate: (dragUpdateDetails) {
-                dragScreen(dragUpdateDetails);
-              },
-              onVerticalDragEnd: (dragEndDetails) {
-                isVisableVoice = false;
-                isVisableBrightness = false;
-                setState(() {});
-              },
-              onDoubleTap: () {
-                _onPlayPause();
-              },
-            onTap: () {
-              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-                BetterPlayerMultipleGestureDetector.of(context)!.onTap?.call();
-              }
-              controlsNotVisible
-                  ? cancelAndRestartTimer()
-                  : changePlayerControlsNotVisible(true);
-            },
-            // onDoubleTap: () {
-            //   if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-            //     BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
-            //   }
-            //   cancelAndRestartTimer();
-            // },
-            onLongPress: () {
-              if (BetterPlayerMultipleGestureDetector.of(context) != null) {
-                BetterPlayerMultipleGestureDetector.of(context)!.onLongPress?.call();
-              }
-            },
-            child: child,
+      onVerticalDragDown:isMultiTouch?null:(drapDownDetails){
+        dragScreenStart(drapDownDetails);
+      } ,
+      onVerticalDragUpdate:isMultiTouch?null:(dragUpdateDetails) {
+        dragScreen(dragUpdateDetails);
+      },
+      onVerticalDragEnd:isMultiTouch?null: (dragEndDetails) {
+        //already write in on Pointer up
+        isVisableVoice = false;
+        isVisableBrightness = false;
+        setState(() {});
+      },
+      onDoubleTap: () {
+        _onPlayPause();
+      },
+      onTap: () {
+        if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+          BetterPlayerMultipleGestureDetector.of(context)!.onTap?.call();
+        }
+        controlsNotVisible
+            ? cancelAndRestartTimer()
+            : changePlayerControlsNotVisible(true);
+      },
+      // onDoubleTap: () {
+      //   if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+      //     BetterPlayerMultipleGestureDetector.of(context)!.onDoubleTap?.call();
+      //   }
+      //   cancelAndRestartTimer();
+      // },
+      // onLongPress: () {
+      //   if (BetterPlayerMultipleGestureDetector.of(context) != null) {
+      //     BetterPlayerMultipleGestureDetector.of(context)!.onLongPress?.call();
+      //   }
+      // },
+      child: child,
     );
   }
+
   Widget _buildMiddleRow() {
     return Container(
       color: _controlsConfiguration.controlBarColor,
@@ -852,7 +889,7 @@ class _BetterPlayerMaterialControlsState
               child: Container(
                 margin: EdgeInsets.only(left: 10),
                 width: 30,
-                height: 200,
+                height: 180,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: Colors.black.withOpacity(0.4)),
@@ -863,11 +900,13 @@ class _BetterPlayerMaterialControlsState
                       volumeToRange15(snapshot.data!).toString(),
                       style: TextStyle(color: Colors.white),
                     ),
-                    VerticalSlider(
-                        min: 0,
-                        max: 15,
-                        value: volumeToRange15(snapshot.data!).toDouble(),
-                        onChanged: (value) {}),
+                    Expanded(
+                      child: VerticalSlider(
+                          min: 0,
+                          max: 15,
+                          value: volumeToRange15(snapshot.data!).toDouble(),
+                          onChanged: (value) {}),
+                    ),
                     snapshot.data == 0
                         ? Icon(
                             Icons.volume_off_rounded,
@@ -925,7 +964,7 @@ class _BetterPlayerMaterialControlsState
     return (volume * 15).round();
   }
 
-  Future<void> dragScreenStart(DragStartDetails dragUpdateDetails) async {
+  Future<void> dragScreenStart(DragDownDetails dragUpdateDetails) async {
     double screenWidth = MediaQuery.of(context).size.width;
     double third = screenWidth / 3;
     double xPos = dragUpdateDetails.localPosition.dx;

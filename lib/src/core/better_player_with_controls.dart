@@ -120,7 +120,7 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
       return width > height ? width / height : height / width;
     }
 
-  Container _buildPlayerWithControls(
+  Widget _buildPlayerWithControls(
       BetterPlayerController betterPlayerController, BuildContext context) {
     final configuration = betterPlayerController.betterPlayerConfiguration;
     var rotation = configuration.rotation;
@@ -137,7 +137,33 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
     final bool placeholderOnTop =
         betterPlayerController.betterPlayerConfiguration.placeholderOnTop;
     // ignore: avoid_unnecessary_containers
-    return Container(
+    // return Container(
+    //   child: Stack(
+    //     fit: StackFit.passthrough,
+    //     children: <Widget>[
+    //       if (placeholderOnTop) _buildPlaceholder(betterPlayerController),
+    //       Transform.rotate(
+    //         angle: rotation * pi / 180,
+    //         child: _BetterPlayerVideoFitWidget(
+    //           betterPlayerController,
+    //           betterPlayerController.getFit(),
+    //         ),
+    //       ),
+    //       betterPlayerController.betterPlayerConfiguration.overlay ??
+    //           Container(),
+    //       BetterPlayerSubtitlesDrawer(
+    //         betterPlayerController: betterPlayerController,
+    //         betterPlayerSubtitlesConfiguration: subtitlesConfiguration,
+    //         subtitles: betterPlayerController.subtitlesLines,
+    //         playerVisibilityStream: playerVisibilityStreamController.stream,
+    //       ),
+    //       if (!placeholderOnTop) _buildPlaceholder(betterPlayerController),
+    //       _buildControls(context, betterPlayerController),
+    //     ],
+    //   ),
+    // );
+
+    Widget videoWidget = Container(
       child: Stack(
         fit: StackFit.passthrough,
         children: <Widget>[
@@ -158,10 +184,11 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
             playerVisibilityStream: playerVisibilityStreamController.stream,
           ),
           if (!placeholderOnTop) _buildPlaceholder(betterPlayerController),
-          _buildControls(context, betterPlayerController),
         ],
       ),
     );
+
+    return _buildControls(context, betterPlayerController, videoWidget);
   }
 
   Widget _buildPlaceholder(BetterPlayerController betterPlayerController) {
@@ -173,6 +200,7 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
   Widget _buildControls(
     BuildContext context,
     BetterPlayerController betterPlayerController,
+    Widget videoWidget
   ) {
     if (controlsConfiguration.showControls) {
       BetterPlayerTheme? playerTheme = controlsConfiguration.playerTheme;
@@ -189,7 +217,7 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
         return controlsConfiguration.customControlsBuilder!(
             betterPlayerController, onControlsVisibilityChanged);
       } else if (playerTheme == BetterPlayerTheme.material) {
-        return _buildMaterialControl();
+        return _buildMaterialControl(videoWidget);
       } else if (playerTheme == BetterPlayerTheme.cupertino) {
         return _buildCupertinoControl();
       }
@@ -198,10 +226,11 @@ class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
     return const SizedBox();
   }
 
-  Widget _buildMaterialControl() {
+  Widget _buildMaterialControl(Widget videoWidget) {
     return BetterPlayerMaterialControls(
       onControlsVisibilityChanged: onControlsVisibilityChanged,
       controlsConfiguration: controlsConfiguration,
+      videoWidget: videoWidget,
     );
   }
 
@@ -315,14 +344,28 @@ class _BetterPlayerVideoFitWidgetState
           child: Container(
             width: double.infinity,
             height: double.infinity,
-            child: FittedBox(
-              fit: widget.boxFit,
-              child: SizedBox(
-                width: controller!.value.size?.width ?? 0,
-                height: controller!.value.size?.height ?? 0,
-                child: VideoPlayer(controller),
+            child:
+            //  Center(
+            //    child: AspectRatio(
+            //      aspectRatio: widget.betterPlayerController.videoPlayerController!.value.aspectRatio,
+            //      // width: controller!.value.size?.width ?? 0,
+            //      // height: controller!.value.size?.height ?? 0,
+            //      child: VideoPlayer(controller),
+            //    ),
+            //  ),
+             InteractiveViewer(
+              panEnabled: true,
+              scaleEnabled: true,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: widget.betterPlayerController.videoPlayerController!.value.aspectRatio,
+                  // width: controller!.value.size?.width ?? 0,
+                  // height: controller!.value.size?.height ?? 0,
+                  child: VideoPlayer(controller),
+                ),
               ),
             ),
+
           ),
         ),
       );
