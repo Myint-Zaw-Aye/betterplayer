@@ -533,7 +533,7 @@ class _BetterPlayerMaterialControlsState
   }
 
   Widget _buildHitArea(Widget videoWidget) {
-    if (betterPlayerController!.controlsEnabled) {
+  //  if (betterPlayerController!.controlsEnabled) {
      //use videoWidget pass to control video with InteractiveViewer zoom
       return Listener(
         onPointerDown: (PointerDownEvent event) {
@@ -557,8 +557,8 @@ class _BetterPlayerMaterialControlsState
           });
         },
         child: controlDetect(child: videoWidget));
-    }
-    return videoWidget;
+    // }
+    // return videoWidget;
     // return videoWidget;
     // return Container(
     //   child: Center(
