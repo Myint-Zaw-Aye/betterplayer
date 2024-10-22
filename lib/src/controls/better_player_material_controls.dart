@@ -965,16 +965,16 @@ class _BetterPlayerMaterialControlsState
   }
 
   Future<void> dragScreenStart(DragDownDetails dragUpdateDetails) async {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double third = screenWidth / 3;
-    double xPos = dragUpdateDetails.localPosition.dx;
-    if (xPos < third) {
-      //left
-      isVisableBrightness = true;
-    } else if (xPos > 2 * third) {
-      isVisableVoice = true;
-    }
-    setState(() {});
+    // double screenWidth = MediaQuery.of(context).size.width;
+    // double third = screenWidth / 3;
+    // double xPos = dragUpdateDetails.localPosition.dx;
+    // if (xPos < third) {
+    //   //left
+    //   isVisableBrightness = true;
+    // } else if (xPos > 2 * third) {
+    //   isVisableVoice = true;
+    // }
+    // setState(() {});
   }
 
   Future<void> dragScreen(DragUpdateDetails dragUpdateDetails) async {
@@ -985,6 +985,7 @@ class _BetterPlayerMaterialControlsState
     double yDelta = dragUpdateDetails.delta.dy;
     if (xPos < third) {
       //left
+      isVisableBrightness = true;
       if (brightness.value < 1 && yDelta < 0) {
         brightness
             .add(double.parse((brightness.value + 0.005).toStringAsFixed(3)));
@@ -997,6 +998,7 @@ class _BetterPlayerMaterialControlsState
       await ScreenBrightness().setScreenBrightness(brightness.value);
     } else if (xPos > 2 * third) {
       //right
+      isVisableVoice = true;
       if (volume.value < 1 && yDelta < 0) {
         volume.add(double.parse((volume.value + 0.005).toStringAsFixed(3)));
       }

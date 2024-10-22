@@ -291,7 +291,7 @@ class _BetterPlayerVideoFitWidgetState
   @override
   void didUpdateWidget(_BetterPlayerVideoFitWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.betterPlayerController.videoPlayerController != controller) {
+    if (oldWidget.betterPlayerController.betterPlayerDataSource!.url != widget.betterPlayerController.betterPlayerDataSource!.url) {
       if (_initializedListener != null) {
         oldWidget.betterPlayerController.videoPlayerController!
             .removeListener(_initializedListener!);
