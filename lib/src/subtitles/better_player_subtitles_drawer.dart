@@ -33,19 +33,19 @@ class _BetterPlayerSubtitlesDrawerState
 
   VideoPlayerValue? _latestValue;
   BetterPlayerSubtitlesConfiguration? _configuration;
-  bool _playerVisible = false;
+  bool _playerVisible = true;
 
   ///Stream used to detect if play controls are visible or not
-  late StreamSubscription _visibilityStreamSubscription;
+  // late StreamSubscription _visibilityStreamSubscription;
 
   @override
   void initState() {
-    _visibilityStreamSubscription =
-        widget.playerVisibilityStream.listen((state) {
-      setState(() {
-        _playerVisible = state;
-      });
-    });
+    // _visibilityStreamSubscription =
+    //     widget.playerVisibilityStream.listen((state) {
+    //   setState(() {
+    //     _playerVisible = state;
+    //   });
+    // });
 
     if (widget.betterPlayerSubtitlesConfiguration != null) {
       _configuration = widget.betterPlayerSubtitlesConfiguration;
@@ -76,7 +76,7 @@ class _BetterPlayerSubtitlesDrawerState
   void dispose() {
     widget.betterPlayerController.videoPlayerController!
         .removeListener(_updateState);
-    _visibilityStreamSubscription.cancel();
+    // _visibilityStreamSubscription.cancel();
     super.dispose();
   }
 

@@ -77,7 +77,7 @@ class _VideoProgressBarState
 
         _controllerWasPlaying = controller!.value.isPlaying;
         if (_controllerWasPlaying) {
-          controller!.pause();
+         // controller!.pause();
         }
 
         if (widget.onDragStart != null) {
@@ -101,7 +101,7 @@ class _VideoProgressBarState
         }
 
         if (_controllerWasPlaying) {
-          betterPlayerController?.play();
+          //betterPlayerController?.videoPlayerController!.play();
           shouldPlayAfterDragEnd = true;
         }
         _setupUpdateBlockTimer();
