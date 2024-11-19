@@ -776,6 +776,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
         }
         _controllerWasPlaying = controller.value.isPlaying;
         if (_controllerWasPlaying) {
+          print('pause from here ......');
           controller.pause();
         }
       },
