@@ -643,7 +643,6 @@ class BetterPlayerController {
 
   ///Stop video playback.
   Future<void> pause() async {
-    print("pause...method start calling................");
     if (videoPlayerController == null) {
       throw StateError("The data source has not been initialized");
     }
