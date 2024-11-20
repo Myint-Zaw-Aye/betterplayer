@@ -988,23 +988,23 @@ class _BetterPlayerMaterialControlsState
       isVisableBrightness = true;
       if (brightness.value < 1 && yDelta < 0) {
         brightness
-            .add(double.parse((brightness.value + 0.005).toStringAsFixed(3)));
+            .add(double.parse((brightness.value + 0.0025).toStringAsFixed(3)));
       }
 
       if (brightness.value > 0 && yDelta > 0) {
         brightness
-            .add(double.parse((brightness.value - 0.005).toStringAsFixed(3)));
+            .add(double.parse((brightness.value - 0.0025).toStringAsFixed(3)));
       }
       await ScreenBrightness().setScreenBrightness(brightness.value);
     } else if (xPos > 2 * third) {
       //right
       isVisableVoice = true;
       if (volume.value < 1 && yDelta < 0) {
-        volume.add(double.parse((volume.value + 0.005).toStringAsFixed(3)));
+        volume.add(double.parse((volume.value + 0.0025).toStringAsFixed(3)));
       }
 
       if (volume.value > 0 && yDelta > 0) {
-        volume.add(double.parse((volume.value - 0.005).toStringAsFixed(3)));
+        volume.add(double.parse((volume.value - 0.0025).toStringAsFixed(3)));
       }
       FlutterVolumeController.showSystemUI = false;
       await FlutterVolumeController.setVolume(volume.value);
