@@ -60,6 +60,8 @@ class _BetterPlayerState extends State<BetterPlayer>
   ///Subscription for controller events
   StreamSubscription? _controllerEventSubscription;
 
+  bool isReloadFullScreen = false;
+
   @override
   void initState() {
     super.initState();
@@ -131,10 +133,15 @@ class _BetterPlayerState extends State<BetterPlayer>
   void onControllerEvent(BetterPlayerControllerEvent event) {
     switch (event) {
       case BetterPlayerControllerEvent.openFullscreen:
+        isReloadFullScreen = false;
         onFullScreenChanged();
         break;
       case BetterPlayerControllerEvent.hideFullscreen:
+       isReloadFullScreen = false;
         onFullScreenChanged();
+        break;
+      case BetterPlayerControllerEvent.reloadFullscreen:
+         isReloadFullScreen = true;
         break;
       default:
         setState(() {});
@@ -257,8 +264,12 @@ class _BetterPlayerState extends State<BetterPlayer>
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
-    await SystemChrome.setPreferredOrientations(
+
+    if(!isReloadFullScreen){
+          await SystemChrome.setPreferredOrientations(
         _betterPlayerConfiguration.deviceOrientationsAfterFullScreen);
+    }
+
   }
 
   Widget _buildPlayer() {
