@@ -606,12 +606,6 @@ class BetterPlayerController {
     _postControllerEvent(BetterPlayerControllerEvent.hideFullscreen);
   }
 
-  ///Disables full screen mode in player. This will trigger route change.
-  void reloadFullScreen() {
-    _isFullScreen = false;
-    _postControllerEvent(BetterPlayerControllerEvent.reloadFullscreen);
-  }
-
   ///Enables/disables full screen mode based on current fullscreen state.
   void toggleFullScreen() {
     _isFullScreen = !_isFullScreen;
@@ -1274,7 +1268,7 @@ class BetterPlayerController {
   ///cache started for given [betterPlayerDataSource] then it will be ignored.
   Future<void> stopPreCache(
       BetterPlayerDataSource betterPlayerDataSource) async {
-    return VideoPlayerController?.stopPreCache(betterPlayerDataSource.url,
+    return VideoPlayerController.stopPreCache(betterPlayerDataSource.url,
         betterPlayerDataSource.cacheConfiguration?.key);
   }
 

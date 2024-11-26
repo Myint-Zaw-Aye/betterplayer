@@ -21,8 +21,8 @@ class _NormalPlayerPageState extends State<NormalPlayerPage> {
       autoPlay: true,
       looping: true,
       deviceOrientationsAfterFullScreen: [
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.portraitUp
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight
       ],
       controlsConfiguration: BetterPlayerControlsConfiguration(
         progressBarPlayedColor:Colors.green,

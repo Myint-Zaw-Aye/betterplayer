@@ -60,8 +60,6 @@ class _BetterPlayerState extends State<BetterPlayer>
   ///Subscription for controller events
   StreamSubscription? _controllerEventSubscription;
 
-  bool isReloadFullScreen = false;
-
   @override
   void initState() {
     super.initState();
@@ -133,15 +131,10 @@ class _BetterPlayerState extends State<BetterPlayer>
   void onControllerEvent(BetterPlayerControllerEvent event) {
     switch (event) {
       case BetterPlayerControllerEvent.openFullscreen:
-        isReloadFullScreen = false;
         onFullScreenChanged();
         break;
       case BetterPlayerControllerEvent.hideFullscreen:
-       isReloadFullScreen = false;
         onFullScreenChanged();
-        break;
-      case BetterPlayerControllerEvent.reloadFullscreen:
-         isReloadFullScreen = true;
         break;
       default:
         setState(() {});
@@ -152,7 +145,8 @@ class _BetterPlayerState extends State<BetterPlayer>
   // ignore: avoid_void_async
   Future<void> onFullScreenChanged() async {
     final controller = widget.controller;
-    if (controller.isFullScreen && !_isFullScreen) {
+    bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    if (controller.isFullScreen && !_isFullScreen && !isLandscape) {
       _isFullScreen = true;
       controller
           .postEvent(BetterPlayerEvent(BetterPlayerEventType.openFullscreen));
@@ -162,6 +156,14 @@ class _BetterPlayerState extends State<BetterPlayer>
       _isFullScreen = false;
       controller
           .postEvent(BetterPlayerEvent(BetterPlayerEventType.hideFullscreen));
+    }
+    else if(controller.isFullScreen && isLandscape){
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown
+        ]);
     }
   }
 
@@ -264,12 +266,8 @@ class _BetterPlayerState extends State<BetterPlayer>
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
-
-    if(!isReloadFullScreen){
-          await SystemChrome.setPreferredOrientations(
+    await SystemChrome.setPreferredOrientations(
         _betterPlayerConfiguration.deviceOrientationsAfterFullScreen);
-    }
-
   }
 
   Widget _buildPlayer() {
