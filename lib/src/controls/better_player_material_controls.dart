@@ -11,6 +11,7 @@ import 'package:better_player/src/video_player/video_player.dart';
 
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -242,10 +243,16 @@ class _BetterPlayerMaterialControlsState
                     child: Row(
                       children: [
                         IconButton(
-                            onPressed: () {
-                              if (_betterPlayerController!.isFullScreen) {
-                                _onExpandCollapse();
-                              }
+                            onPressed: () async{
+                              // if (_betterPlayerController!.isFullScreen) {
+                              //   _onExpandCollapse();
+                              // }
+                               await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+                                overlays: betterPlayerController!.betterPlayerConfiguration.systemOverlaysAfterFullScreen);
+                                await SystemChrome.setPreferredOrientations([
+                                  DeviceOrientation.portraitUp,
+                                  DeviceOrientation.portraitDown
+                                ]);
                               Navigator.of(context).pop();
                             },
                             icon: Icon(

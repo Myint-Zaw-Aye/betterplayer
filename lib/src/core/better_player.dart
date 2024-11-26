@@ -101,14 +101,21 @@ class _BetterPlayerState extends State<BetterPlayer>
     ///If somehow BetterPlayer widget has been disposed from widget tree and
     ///full screen is on, then full screen route must be pop and return to normal
     ///state.
-    if (_isFullScreen) {
-      WakelockPlus.disable();
-      _navigatorState.maybePop();
+    // if (_isFullScreen) {
+    //   WakelockPlus.disable();
+    //   _navigatorState.maybePop();
+    //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+    //       overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
+    //   SystemChrome.setPreferredOrientations(
+    //       _betterPlayerConfiguration.deviceOrientationsAfterFullScreen);
+    // }
+
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-          overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
-      SystemChrome.setPreferredOrientations(
-          _betterPlayerConfiguration.deviceOrientationsAfterFullScreen);
-    }
+       overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
+        SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown
+      ]);
 
     WidgetsBinding.instance.removeObserver(this);
     _controllerEventSubscription?.cancel();
@@ -131,10 +138,10 @@ class _BetterPlayerState extends State<BetterPlayer>
   void onControllerEvent(BetterPlayerControllerEvent event) {
     switch (event) {
       case BetterPlayerControllerEvent.openFullscreen:
-        onFullScreenChanged();
+        orientationChanged();
         break;
       case BetterPlayerControllerEvent.hideFullscreen:
-        onFullScreenChanged();
+        orientationChanged();
         break;
       default:
         setState(() {});
@@ -142,23 +149,47 @@ class _BetterPlayerState extends State<BetterPlayer>
     }
   }
 
-  // ignore: avoid_void_async
-  Future<void> onFullScreenChanged() async {
-    final controller = widget.controller;
+  // // ignore: avoid_void_async
+  // Future<void> onFullScreenChanged() async {
+  //   final controller = widget.controller;
+  //   bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+  //   if (controller.isFullScreen && !_isFullScreen && !isLandscape) {
+  //     // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+  //     _isFullScreen = true;
+  //     controller
+  //         .postEvent(BetterPlayerEvent(BetterPlayerEventType.openFullscreen));
+  //     await _pushFullScreenWidget(context);
+  //   } else if (_isFullScreen) {
+  //     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  //     Navigator.of(context, rootNavigator: true).pop();
+  //     _isFullScreen = false;
+  //     controller
+  //         .postEvent(BetterPlayerEvent(BetterPlayerEventType.hideFullscreen));
+  //   }
+  //   else if(controller.isFullScreen && isLandscape){
+  //       await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+  //       overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
+  //       await SystemChrome.setPreferredOrientations([
+  //         DeviceOrientation.portraitUp,
+  //         DeviceOrientation.portraitDown
+  //       ]);
+  //   }
+  // }
+
+
+   // ignore: avoid_void_async
+  Future<void> orientationChanged() async {
     bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    if (controller.isFullScreen && !_isFullScreen && !isLandscape) {
-      _isFullScreen = true;
-      controller
-          .postEvent(BetterPlayerEvent(BetterPlayerEventType.openFullscreen));
-      await _pushFullScreenWidget(context);
-    } else if (_isFullScreen) {
-      Navigator.of(context, rootNavigator: true).pop();
-      _isFullScreen = false;
-      controller
-          .postEvent(BetterPlayerEvent(BetterPlayerEventType.hideFullscreen));
-    }
-    else if(controller.isFullScreen && isLandscape){
-        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+    if (!isLandscape) {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky,
+        overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight
+        ]);
+
+    } else if (isLandscape) {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,
@@ -166,7 +197,6 @@ class _BetterPlayerState extends State<BetterPlayer>
         ]);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return BetterPlayerControllerProvider(
