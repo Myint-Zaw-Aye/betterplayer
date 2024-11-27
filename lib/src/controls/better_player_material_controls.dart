@@ -69,6 +69,9 @@ class _BetterPlayerMaterialControlsState
       widget.controlsConfiguration;
 
   bool isTwoFingerDrag = true;
+  bool isShowForward = false;
+  bool isShowBack = false;
+  bool isShowPlayPause = false;
 
   @override
   VideoPlayerValue? get latestValue => _latestValue;
@@ -111,6 +114,7 @@ class _BetterPlayerMaterialControlsState
                   right: 0,
                   child: _buildTopBar(),
                 ),
+                _buildMiddleRow(),
                 Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
                 _buildNextVideoWidget(),
                         
@@ -592,8 +596,11 @@ class _BetterPlayerMaterialControlsState
         isVisableBrightness = false;
         setState(() {});
       },
-      onDoubleTap: () {
-        _onPlayPause();
+      // onDoubleTap: () {
+      //   _onPlayPause();
+      // },
+      onDoubleTapDown: (details){
+        skipAction(details);
       },
       onTap: () {
         if (BetterPlayerMultipleGestureDetector.of(context) != null) {
@@ -618,27 +625,51 @@ class _BetterPlayerMaterialControlsState
     );
   }
 
+  // Widget _buildMiddleRow() {
+  //   return Container(
+  //     color: _controlsConfiguration.controlBarColor,
+  //     width: double.infinity,
+  //     height: double.infinity,
+  //     child: _betterPlayerController?.isLiveStream() == true
+  //         ? const SizedBox()
+  //         : Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //             children: [
+  //               if (_controlsConfiguration.enableSkips)
+  //                 Expanded(child: _buildSkipButton())
+  //               else
+  //                 const SizedBox(),
+  //               Expanded(child: _buildReplayButton(_controller!)),
+  //               if (_controlsConfiguration.enableSkips)
+  //                 Expanded(child: _buildForwardButton())
+  //               else
+  //                 const SizedBox(),
+  //             ],
+  //           ),
+  //   );
+  // }
+
   Widget _buildMiddleRow() {
-    return Container(
-      color: _controlsConfiguration.controlBarColor,
-      width: double.infinity,
-      height: double.infinity,
-      child: _betterPlayerController?.isLiveStream() == true
-          ? const SizedBox()
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                if (_controlsConfiguration.enableSkips)
-                  Expanded(child: _buildSkipButton())
-                else
-                  const SizedBox(),
-                Expanded(child: _buildReplayButton(_controller!)),
-                if (_controlsConfiguration.enableSkips)
-                  Expanded(child: _buildForwardButton())
-                else
-                  const SizedBox(),
-              ],
-            ),
+    return Center(
+      child: Container(
+        color: Colors.transparent,
+        child: _betterPlayerController?.isLiveStream() == true
+            ? const SizedBox()
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (_controlsConfiguration.enableSkips)
+                    Expanded(child: _buildBackButton())
+                  else
+                    const SizedBox(),
+                  Expanded(child: _buildReplayButton(_controller!)),
+                  if (_controlsConfiguration.enableSkips)
+                    Expanded(child: _buildForwardButton())
+                  else
+                    const SizedBox(),
+                ],
+              ),
+      ),
     );
   }
 
@@ -666,61 +697,48 @@ class _BetterPlayerMaterialControlsState
     );
   }
 
-  Widget _buildSkipButton() {
-    return _buildHitAreaClickableButton(
-      icon: Icon(
-        _controlsConfiguration.skipBackIcon,
-        size: 24,
-        color: _controlsConfiguration.iconsColor,
-      ),
-      onClicked: skipBack,
-    );
-  }
 
   Widget _buildForwardButton() {
-    return _buildHitAreaClickableButton(
-      icon: Icon(
-        _controlsConfiguration.skipForwardIcon,
-        size: 24,
-        color: _controlsConfiguration.iconsColor,
-      ),
-      onClicked: skipForward,
-    );
+    return !isShowForward
+          ?Container(height: 0,width: 0,color: Colors.blue,)
+          : IconButton(
+            icon: Icon(
+                 _controlsConfiguration.skipForwardIcon,
+                size: 42,
+                color: Colors.white,
+              ),
+              onPressed: (){
+                skipForward();
+              },
+          );
+  }
+
+  Widget _buildBackButton() {
+    return !isShowBack
+          ? Container(height: 0,width: 0,color: Colors.blue,)
+          : IconButton(icon: Icon(
+            _controlsConfiguration.skipBackIcon,
+              size: 42,
+              color: Colors.white,
+          ),
+              onPressed: (){
+                skipBack();
+              },
+            );
   }
 
   Widget _buildReplayButton(VideoPlayerController controller) {
-    final bool isFinished = isVideoFinished(_latestValue);
-    return _buildHitAreaClickableButton(
-      icon: isFinished
-          ? Icon(
-              Icons.replay,
-              size: 42,
-              color: _controlsConfiguration.iconsColor,
-            )
-          : Icon(
-              controller.value.isPlaying
+    return !isShowPlayPause
+          ?Container(height: 0,width: 0,color: Colors.blue,)
+          : IconButton(
+              icon: Icon(controller.value.isPlaying
                   ? _controlsConfiguration.pauseIcon
                   : _controlsConfiguration.playIcon,
-              size: 42,
-              color: _controlsConfiguration.iconsColor,
-            ),
-      onClicked: () {
-        if (isFinished) {
-          if (_latestValue != null && _latestValue!.isPlaying) {
-            if (_displayTapped) {
-              changePlayerControlsNotVisible(true);
-            } else {
-              cancelAndRestartTimer();
-            }
-          } else {
-            _onPlayPause();
-            changePlayerControlsNotVisible(true);
-          }
-        } else {
-          _onPlayPause();
-        }
-      },
-    );
+              size: 42,color: Colors.white,),        
+              onPressed: (){
+                  _onPlayPause();
+              },
+            );
   }
 
   Widget _buildNextVideoWidget() {
@@ -1017,6 +1035,29 @@ class _BetterPlayerMaterialControlsState
       await FlutterVolumeController.setVolume(volume.value);
     }
     setState(() {});
+  }
+
+  Future<void> skipAction(TapDownDetails details) async {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double tapX = details.globalPosition.dx;
+
+    if (tapX < screenWidth / 3) {
+      isShowBack = true;
+      skipBack();
+    } else if (tapX > 2 * screenWidth / 3) {
+      isShowForward = true;
+      skipForward();
+    } else {
+      isShowPlayPause = true;
+      _onPlayPause();
+    }
+
+    setState(() {});
+    Future.delayed(Duration(milliseconds: 500)).then((value){
+        isShowBack = false;
+        isShowForward = false;
+        isShowPlayPause = false;
+    });
   }
 
   @override

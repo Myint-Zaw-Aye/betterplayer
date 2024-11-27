@@ -41,6 +41,7 @@ class _VideoProgressBarState
 
   late VoidCallback listener;
   bool _controllerWasPlaying = false;
+  bool _isSeeking = false;
 
   VideoPlayerController? get controller => widget.controller;
 
@@ -76,9 +77,6 @@ class _VideoProgressBarState
         }
 
         _controllerWasPlaying = controller!.value.isPlaying;
-        if (_controllerWasPlaying) {
-         // controller!.pause();
-        }
 
         if (widget.onDragStart != null) {
           widget.onDragStart!();
@@ -100,8 +98,13 @@ class _VideoProgressBarState
           return;
         }
 
+        if (lastSeek != null) {
+          betterPlayerController!.seekTo(lastSeek!); // Seek at the end of the drag
+          lastSeek = null;
+        }
+
         if (_controllerWasPlaying) {
-          //betterPlayerController?.videoPlayerController!.play();
+          betterPlayerController?.play();
           shouldPlayAfterDragEnd = true;
         }
         _setupUpdateBlockTimer();
@@ -137,7 +140,7 @@ class _VideoProgressBarState
   }
 
   void _setupUpdateBlockTimer() {
-    _updateBlockTimer = Timer(const Duration(milliseconds: 1000), () {
+    _updateBlockTimer = Timer(const Duration(milliseconds: 300), () {
       lastSeek = null;
       _cancelUpdateBlockTimer();
     });
@@ -157,6 +160,9 @@ class _VideoProgressBarState
   }
 
   void seekToRelativePosition(Offset globalPosition) async {
+    if (_isSeeking) return;
+
+    _isSeeking = true;
     final RenderObject? renderObject = context.findRenderObject();
     if (renderObject != null) {
       final box = renderObject as RenderBox;
@@ -174,6 +180,7 @@ class _VideoProgressBarState
         }
       }
     }
+    _isSeeking = false;
   }
 
   void onFinishedLastSeek() {
@@ -191,8 +198,9 @@ class _ProgressBarPainter extends CustomPainter {
   BetterPlayerProgressColors colors;
 
   @override
-  bool shouldRepaint(CustomPainter painter) {
-    return true;
+  bool shouldRepaint(covariant _ProgressBarPainter oldDelegate) {
+    return oldDelegate.value.position != value.position ||
+        oldDelegate.value.buffered != value.buffered;
   }
 
   @override

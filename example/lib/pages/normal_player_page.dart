@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:better_player/better_player.dart';
 import 'package:example/constants.dart';
+import 'package:example/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -29,14 +32,21 @@ class _NormalPlayerPageState extends State<NormalPlayerPage> {
         progressBarHandleColor:Colors.green
       )
     );
-    _betterPlayerDataSource = BetterPlayerDataSource(
-      BetterPlayerDataSourceType.network,
-      Constants.forBiggerBlazesUrl,
-      title: 'hello'
-    );
+    
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
-    _betterPlayerController.setupDataSource(_betterPlayerDataSource);
+    _setupDataSource();
+    //_betterPlayerController.setupDataSource(_betterPlayerDataSource);
     super.initState();
+  }
+
+  void _setupDataSource() async {
+    var filePath = await Utils.getFileUrl(Constants.fileTestVideoUrl);
+    File file = File(filePath);
+
+    List<int> bytes = file.readAsBytesSync().buffer.asUint8List();
+    BetterPlayerDataSource dataSource =
+        BetterPlayerDataSource.memory(bytes, videoExtension: "mp4");
+    _betterPlayerController.setupDataSource(dataSource);
   }
 
   @override
