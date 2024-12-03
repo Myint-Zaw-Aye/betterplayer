@@ -297,14 +297,14 @@ class _BetterPlayerMaterialControlsState
                            _controlsConfiguration.setLoopingNew!(true);
                         })
                         : isRepeat
-                            ? _buildLoopButton(Icons.repeat_one,Theme.of(context).primaryColor,(){
+                            ? _buildLoopButton(Icons.repeat_one,_controlsConfiguration.progressBarHandleColor.withOpacity(0.4),(){
                                 isRepeat = false;
                                 isLoop = false;
                                 setState(() {});
                                 _controlsConfiguration.setRepeat!(false);
                                 _controlsConfiguration.setLoopingNew!(false);                                
                             })
-                            : _buildLoopButton(Icons.repeat,Theme.of(context).primaryColor,(){
+                            : _buildLoopButton(Icons.repeat,_controlsConfiguration.progressBarHandleColor.withOpacity(0.4),(){
                                 isRepeat = true;
                                 setState(() {});
                                 _controlsConfiguration.setRepeat!(true);
